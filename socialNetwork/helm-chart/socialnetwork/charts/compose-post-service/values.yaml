@@ -23,6 +23,9 @@ container:
   ports: 
   - containerPort: 9090
     name: http
+  env:
+  - name: THRIFT_FRAME_SIZE
+    value: "134217728"  # 128MB
 
 configMaps:
   - name: jaeger-config.yml
