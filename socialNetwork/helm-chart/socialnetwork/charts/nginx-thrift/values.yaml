@@ -3,6 +3,18 @@ name: nginx-thrift
 ports:
   - port: 8080
     targetPort: 8080
+    name: http
+
+# Dual VM Deployment Configuration
+deployments:
+  vm1:
+    enabled: true
+    nodeName: "master-node"  
+    replicas: 1
+  vm2:
+    enabled: true
+    nodeName: "worker-node"  
+    replicas: 1
 
 container:
   image: yg397/openresty-thrift
@@ -10,6 +22,7 @@ container:
   name: nginx-thrift
   ports: 
   - containerPort: 8080
+    name: http
   env:
   - name: fqdn_suffix
     value: ".{{ .Release.Namespace }}.svc.cluster.local"
@@ -64,3 +77,13 @@ configMaps:
   - name: nginx.conf
     mountPath: /usr/local/openresty/nginx/conf/nginx.conf 
     value: nginx
+
+# Istio Configuration for load-balancing across VMs
+istio:
+  enabled: true
+  virtualService:
+    loadBalancing: ROUND_ROBIN  # or LEAST_REQUEST, RANDOM
+    timeout: 30s
+    retries:
+      attempts: 3
+      perTryTimeout: 10s

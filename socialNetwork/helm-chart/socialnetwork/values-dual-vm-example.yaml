@@ -1,0 +1,168 @@
+# Example values override file for dual VM + Istio deployment
+# 
+# USAGE:
+#   helm install social-network ./helm-chart/socialnetwork \
+#     -f values-dual-vm-example.yaml
+#
+# OR if already deployed:
+#   helm upgrade social-network ./helm-chart/socialnetwork \
+#     -f values-dual-vm-example.yaml
+
+# ============================================================================
+# CRITICAL: Update these node names to match your cluster
+# ============================================================================
+# Run: kubectl get nodes -o wide
+# And copy the node names below
+# ============================================================================
+
+user-timeline-service:
+  deployments:
+    vm1:
+      enabled: true
+      nodeName: "master-node"  # ← CHANGE TO YOUR FIRST NODE NAME
+      replicas: 1
+    vm2:
+      enabled: true
+      nodeName: "worker-node"  # ← CHANGE TO YOUR SECOND NODE NAME
+      replicas: 1
+  
+  istio:
+    enabled: true
+    virtualService:
+      loadBalancing: ROUND_ROBIN
+      timeout: 30s
+      retries:
+        attempts: 3
+        perTryTimeout: 10s
+
+post-storage-service:
+  deployments:
+    vm1:
+      enabled: true
+      nodeName: "master-node"  # ← CHANGE TO YOUR FIRST NODE NAME
+      replicas: 1
+    vm2:
+      enabled: true
+      nodeName: "worker-node"  # ← CHANGE TO YOUR SECOND NODE NAME
+      replicas: 1
+  
+  istio:
+    enabled: true
+    virtualService:
+      loadBalancing: ROUND_ROBIN
+      timeout: 30s
+      retries:
+        attempts: 3
+        perTryTimeout: 10s
+
+nginx-thrift:
+  deployments:
+    vm1:
+      enabled: true
+      nodeName: "master-node"  # ← CHANGE TO YOUR FIRST NODE NAME
+      replicas: 1
+    vm2:
+      enabled: true
+      nodeName: "worker-node"  # ← CHANGE TO YOUR SECOND NODE NAME
+      replicas: 1
+  
+  istio:
+    enabled: true
+    virtualService:
+      loadBalancing: ROUND_ROBIN
+      timeout: 30s
+      retries:
+        attempts: 3
+        perTryTimeout: 10s
+
+# ============================================================================
+# OPTIONAL: Adjust these for different load-balancing strategies
+# ============================================================================
+
+# Load-Balancing Algorithms:
+# - ROUND_ROBIN: Equal distribution (default, good for uniform loads)
+# - LEAST_REQUEST: Route to pod with fewest active connections (better for variable latency)
+# - RANDOM: Random distribution (for testing)
+# - CONSISTENT_HASH: Same client to same pod (only if pods maintain state)
+
+# Example: Use different algorithms per service
+# (Uncomment and modify if desired)
+#
+# user-timeline-service:
+#   istio:
+#     virtualService:
+#       loadBalancing: LEAST_REQUEST  # Better for variable latency
+#
+# post-storage-service:
+#   istio:
+#     virtualService:
+#       loadBalancing: ROUND_ROBIN    # Equal distribution
+
+# ============================================================================
+# OPTIONAL: Adjust replicas per VM
+# ============================================================================
+
+# Scale up high-availability:
+# user-timeline-service:
+#   deployments:
+#     vm1:
+#       replicas: 3
+#     vm2:
+#       replicas: 3
+#
+# Scale down for testing:
+# post-storage-service:
+#   deployments:
+#     vm1:
+#       replicas: 2
+#     vm2:
+#       replicas: 1
+
+# ============================================================================
+# OPTIONAL: Disable one VM (useful for testing single-node behavior)
+# ============================================================================
+
+# Deploy only to VM1 (useful for quick testing):
+# user-timeline-service:
+#   deployments:
+#     vm1:
+#       enabled: true
+#     vm2:
+#       enabled: false  # Disable VM2
+
+# ============================================================================
+# OPTIONAL: Adjust resource limits
+# ============================================================================
+
+# Increase resource requests if needed:
+# global:
+#   resources:
+#     limits:
+#       cpu: 200m
+#       memory: 256Mi
+#     requests:
+#       cpu: 200m
+#       memory: 256Mi
+
+# ============================================================================
+# OPTIONAL: Enable HPA (Horizontal Pod Autoscaling)
+# ============================================================================
+
+# global:
+#   hpa:
+#     enabled: true
+#     minReplicas: 1
+#     maxReplicas: 5
+#     targetMemoryUtilizationPercentage: 60
+#     targetCPUUtilizationPercentage: 60
+
+# ============================================================================
+# IMPORTANT: Leave the rest as defaults
+# ============================================================================
+# The following services are unchanged for this deployment example,
+# but they will also benefit from improved deployment consistency
+# when deployed alongside the three core services above.
+
+# Keep other microservices as-is (they don't have dual VM config yet):
+# home-timeline-service, social-graph-service, text-service, etc.
+# These will continue to deploy with the original baseDeployment template
