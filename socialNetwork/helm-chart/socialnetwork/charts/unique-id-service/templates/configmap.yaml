@@ -1,1 +1,2 @@
-{{ include "socialnetwork.templates.baseConfigMap" . }}
+{{ include "socialnetwork.templates.baseConfigMapVM" . }}
+{{ include "socialnetwork.templates.istioVirtualService" . }}

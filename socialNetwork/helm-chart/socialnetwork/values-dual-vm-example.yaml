@@ -14,6 +14,185 @@
 # Run: kubectl get nodes -o wide
 # And copy the node names below
 # ============================================================================
+compose-post-service:
+  deployments:
+    vm1:
+      enabled: true
+      nodeName: "master-node"  # ← CHANGE TO YOUR FIRST NODE NAME
+      replicas: 1
+    vm2:
+      enabled: true
+      nodeName: "worker-node"  # ← CHANGE TO YOUR SECOND NODE NAME
+      replicas: 1
+  
+  istio:
+    enabled: true
+    virtualService:
+      loadBalancing: ROUND_ROBIN
+      timeout: 30s
+      retries:
+        attempts: 3
+        perTryTimeout: 10s
+
+home-timeline-service:
+  deployments:
+    vm1:
+      enabled: true
+      nodeName: "master-node"  # ← CHANGE TO YOUR FIRST NODE NAME
+      replicas: 1
+    vm2:
+      enabled: true
+      nodeName: "worker-node"  # ← CHANGE TO YOUR SECOND NODE NAME
+      replicas: 1
+  
+  istio:
+    enabled: true
+    virtualService:
+      loadBalancing: ROUND_ROBIN
+      timeout: 30s
+      retries:
+        attempts: 3
+        perTryTimeout: 10s
+
+media-service:
+  deployments:
+    vm1:
+      enabled: true
+      nodeName: "master-node"  # ← CHANGE TO YOUR FIRST NODE NAME
+      replicas: 1
+    vm2:
+      enabled: true
+      nodeName: "worker-node"  # ← CHANGE TO YOUR SECOND NODE NAME
+      replicas: 1
+  
+  istio:
+    enabled: true
+    virtualService:
+      loadBalancing: ROUND_ROBIN
+      timeout: 30s
+      retries:
+        attempts: 3
+        perTryTimeout: 10s
+
+social-graph-service:
+  deployments:
+    vm1:
+      enabled: true
+      nodeName: "master-node"  # ← CHANGE TO YOUR FIRST NODE NAME
+      replicas: 1
+    vm2:
+      enabled: true
+      nodeName: "worker-node"  # ← CHANGE TO YOUR SECOND NODE NAME
+      replicas: 1
+  
+  istio:
+    enabled: true
+    virtualService:
+      loadBalancing: ROUND_ROBIN
+      timeout: 30s
+      retries:
+        attempts: 3
+        perTryTimeout: 10s
+
+text-service:
+  deployments:
+    vm1:
+      enabled: true
+      nodeName: "master-node"  # ← CHANGE TO YOUR FIRST NODE NAME
+      replicas: 1
+    vm2:
+      enabled: true
+      nodeName: "worker-node"  # ← CHANGE TO YOUR SECOND NODE NAME
+      replicas: 1
+  
+  istio:
+    enabled: true
+    virtualService:
+      loadBalancing: ROUND_ROBIN
+      timeout: 30s
+      retries:
+        attempts: 3
+        perTryTimeout: 10s
+
+unique-id-service:
+  deployments:
+    vm1:
+      enabled: true
+      nodeName: "master-node"  # ← CHANGE TO YOUR FIRST NODE NAME
+      replicas: 1
+    vm2:
+      enabled: true
+      nodeName: "worker-node"  # ← CHANGE TO YOUR SECOND NODE NAME
+      replicas: 1
+  
+  istio:
+    enabled: true
+    virtualService:
+      loadBalancing: ROUND_ROBIN
+      timeout: 30s
+      retries:
+        attempts: 3
+        perTryTimeout: 10s
+
+url-shorten-service:
+  deployments:
+    vm1:
+      enabled: true
+      nodeName: "master-node"  # ← CHANGE TO YOUR FIRST NODE NAME
+      replicas: 1
+    vm2:
+      enabled: true
+      nodeName: "worker-node"  # ← CHANGE TO YOUR SECOND NODE NAME
+      replicas: 1
+  
+  istio:
+    enabled: true
+    virtualService:
+      loadBalancing: ROUND_ROBIN
+      timeout: 30s
+      retries:
+        attempts: 3
+        perTryTimeout: 10s
+
+user-mention-service:
+  deployments:
+    vm1:
+      enabled: true
+      nodeName: "master-node"  # ← CHANGE TO YOUR FIRST NODE NAME
+      replicas: 1
+    vm2:
+      enabled: true
+      nodeName: "worker-node"  # ← CHANGE TO YOUR SECOND NODE NAME
+      replicas: 1
+  
+  istio:
+    enabled: true
+    virtualService:
+      loadBalancing: ROUND_ROBIN
+      timeout: 30s
+      retries:
+        attempts: 3
+        perTryTimeout: 10s
+
+user-service:
+  deployments:
+    vm1:
+      enabled: true
+      nodeName: "master-node"  # ← CHANGE TO YOUR FIRST NODE NAME
+      replicas: 1
+    vm2:
+      enabled: true
+      nodeName: "worker-node"  # ← CHANGE TO YOUR SECOND NODE NAME
+      replicas: 1
+  
+  istio:
+    enabled: true
+    virtualService:
+      loadBalancing: ROUND_ROBIN
+      timeout: 30s
+      retries:
+        attempts: 3
+        perTryTimeout: 10s
 
 user-timeline-service:
   deployments:

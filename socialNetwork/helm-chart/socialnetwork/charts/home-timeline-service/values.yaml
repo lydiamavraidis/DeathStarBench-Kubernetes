@@ -3,6 +3,19 @@ name: home-timeline-service
 ports:
   - port: 9090
     targetPort: 9090
+    name: http
+
+# Dual VM Deployment Configuration
+deployments:
+  vm1:
+    enabled: true
+    nodeName: "master-node"  
+    replicas: 1
+  vm2:
+    enabled: true
+    nodeName: "worker-node"  
+    replicas: 1
+
 
 container:
   command: HomeTimelineService
@@ -10,6 +23,8 @@ container:
   name: home-timeline-service
   ports: 
   - containerPort: 9090
+    name: http
+
 
 configMaps:
   - name: jaeger-config.yml
@@ -19,3 +34,13 @@ configMaps:
   - name: service-config.json
     mountPath: /social-network-microservices/config/service-config.json
     value: service-config
+
+# Istio Configuration for load-balancing across VMs
+istio:
+  enabled: true
+  virtualService:
+    loadBalancing: ROUND_ROBIN  # or LEAST_REQUEST, RANDOM
+    timeout: 30s
+    retries:
+      attempts: 3
+      perTryTimeout: 10s
