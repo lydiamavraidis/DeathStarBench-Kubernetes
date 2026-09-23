@@ -1,0 +1,9 @@
+{{- if .Values.global.prometheus.enabled }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.global.prometheus.namespace }}
+  labels:
+    name: {{ .Values.global.prometheus.namespace }}
+{{- end }}
+ 

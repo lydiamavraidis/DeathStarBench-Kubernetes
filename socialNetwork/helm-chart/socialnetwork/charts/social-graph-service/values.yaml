@@ -23,7 +23,7 @@ container:
   ports: 
   - containerPort: 9090
     main: http
-
+    
 configMaps:
   - name: jaeger-config.yml
     mountPath: /social-network-microservices/config/jaeger-config.yml
@@ -32,13 +32,3 @@ configMaps:
   - name: service-config.json
     mountPath: /social-network-microservices/config/service-config.json
     value: service-config
-
-# Istio Configuration for load-balancing across VMs
-istio:
-  enabled: true
-  virtualService:
-    loadBalancing: ROUND_ROBIN  # or LEAST_REQUEST, RANDOM
-    timeout: 30s
-    retries:
-      attempts: 3
-      perTryTimeout: 10s

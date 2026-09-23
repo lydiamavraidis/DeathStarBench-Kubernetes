@@ -11,6 +11,9 @@ dependencies:
 - name: jaeger
   repository: ""
   version: 0.1.0
+- name: kube-prometheus-stack
+  repository: https://prometheus-community.github.io/helm-charts
+  version: 61.7.0
 - name: media-service
   repository: ""
   version: 0.1.0
@@ -92,5 +95,5 @@ dependencies:
 - name: redis
   repository: https://charts.bitnami.com/bitnami
   version: 17.3.7
-digest: sha256:ae28f9578ffe74dc4b53bb0acd57c6e2e69c55f1118ed446e16ceb8a98ace498
-generated: "2023-01-17T14:10:40.338928+01:00"
+digest: sha256:defd1d186f8ac0aa9b28ccb35a6dbd9030ee9350ea8539f49a8e13d4d0570591
+generated: "2026-09-22T12:08:16.309827894Z"

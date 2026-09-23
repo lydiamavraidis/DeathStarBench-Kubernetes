@@ -53,6 +53,9 @@ global:
     samplerParam: 0.1
     disabled: false
     logSpans: false
+  prometheus:
+    enabled: true
+    namespace: prometheus
 
 mongodb-sharded:
   fullnameOverride: mongodb-sharded
