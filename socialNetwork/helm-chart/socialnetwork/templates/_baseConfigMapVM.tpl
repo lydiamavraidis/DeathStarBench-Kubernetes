@@ -16,6 +16,7 @@ data:
   {{ $configMap.name }}: |
 {{ tpl ($.Files.Get $filePath) $ | indent 4 }}
   {{- end }}
+  {{- if $.Values.includePrometheus }}
   sidecar-prometheus.yml: |
     global:
       scrape_interval: 15s
@@ -25,6 +26,7 @@ data:
       static_configs:
       - targets: ['localhost:15000']
       metrics_path: /stats/prometheus
+  {{- end }}
 {{- end }}
 {{- end }}
 {{- end }}

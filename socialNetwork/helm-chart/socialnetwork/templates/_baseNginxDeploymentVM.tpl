@@ -23,7 +23,9 @@ spec:
         app: {{ $.Values.name }}
         vm: {{ $vmId }}
         version: v1
+        {{- if $.Values.includePrometheus }}
         has-prometheus-sidecar: "true"
+        {{- end }}
       annotations:
         sidecar.istio.io/inject: "true"
         proxy.istio.io/config: |
@@ -88,6 +90,7 @@ spec:
         {{- end }}
       {{- end }}
 
+      {{- if $.Values.includePrometheus }}
       - name: prometheus-sidecar
         image: prom/prometheus:v2.53.1
         args:
@@ -106,11 +109,12 @@ spec:
           mountPath: /prometheus
         resources:
           requests:
-            cpu: 3m
-            memory: 12Mi
+            cpu: 2m
+            memory: 8Mi
           limits:
-            cpu: 3m
-            memory: 12Mi
+            cpu: 15m
+            memory: 32Mi
+      {{- end }}
 
       initContainers:
       {{- with $.Values.initContainer }}
@@ -150,13 +154,17 @@ spec:
         {{- end }}
       {{- end -}}
 
-      {{- if $.Values.configMaps }}
+      {{- if or $.Values.configMaps $.Values.includePrometheus $.Values.volumes }}
       volumes:
+      {{- if $.Values.configMaps }}
       - name: {{ $.Values.name }}-config
         configMap:
           name: {{ $.Values.name }}-{{ $vmId }}
+      {{- end }}
+      {{- if $.Values.includePrometheus }}
       - name: prometheus-storage
         emptyDir: {}
+      {{- end }}
       {{- range $.Values.volumes }}
       - name: {{ .name }}
         emptyDir: {}

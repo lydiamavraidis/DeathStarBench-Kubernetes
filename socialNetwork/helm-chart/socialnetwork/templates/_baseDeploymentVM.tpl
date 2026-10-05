@@ -10,7 +10,7 @@ metadata:
     vm: {{ $vmId }}
   name: {{ $.Values.name }}-{{ $vmId }}
   namespace: {{ $.Release.Namespace }}
-spec: 
+spec:
   replicas: {{ $vmConfig.replicas | default $.Values.global.replicas }}
   selector:
     matchLabels:
@@ -23,7 +23,9 @@ spec:
         app: {{ $.Values.name }}
         vm: {{ $vmId }}
         version: v1
+        {{- if $.Values.includePrometheus }}
         has-prometheus-sidecar: "true"
+        {{- end }}
       annotations:
         sidecar.istio.io/inject: "true"
         proxy.istio.io/config: |
@@ -58,7 +60,7 @@ spec:
         {{- end }}
         {{- end }}
         {{- if .command}}
-        command: 
+        command:
         - {{ .command }}
         {{- end }}
         {{- if .args}}
@@ -67,15 +69,15 @@ spec:
         - {{ $arg }}
         {{- end }}
         {{- end }}
-        {{- if hasKey . "resources" }}  
+        {{- if hasKey . "resources" }}
         resources:
           {{ toYaml .resources | nindent 10 | trim }}
-        {{- else if hasKey $.Values.global "resources" }}           
+        {{- else if hasKey $.Values.global "resources" }}
         resources:
           {{ toYaml $.Values.global.resources | nindent 10 | trim }}
         {{- end }}
-        {{- if $.Values.configMaps }}        
-        volumeMounts: 
+        {{- if $.Values.configMaps }}
+        volumeMounts:
         {{- range $configMap := $.Values.configMaps }}
         - name: {{ $.Values.name }}-config
           mountPath: {{ $configMap.mountPath }}
@@ -83,6 +85,7 @@ spec:
         {{- end }}
         {{- end }}
       {{- end }}
+      {{- if $.Values.includePrometheus }}
       - name: prometheus-sidecar
         image: prom/prometheus:v2.53.1
         args:
@@ -101,18 +104,23 @@ spec:
           mountPath: /prometheus
         resources:
           requests:
-            cpu: 3m
-            memory: 12Mi
+            cpu: 2m
+            memory: 8Mi
           limits:
-            cpu: 3m
-            memory: 12Mi
-      {{- if $.Values.configMaps }}
+            cpu: 15m
+            memory: 32Mi
+      {{- end }}
+      {{- if or $.Values.configMaps $.Values.includePrometheus }}
       volumes:
+      {{- if $.Values.configMaps }}
       - name: {{ $.Values.name }}-config
         configMap:
           name: {{ $.Values.name }}-{{ $vmId }}
+      {{- end }}
+      {{- if $.Values.includePrometheus }}
       - name: prometheus-storage
         emptyDir: {}
+      {{- end }}
       {{- end }}
       {{- if hasKey $.Values "topologySpreadConstraints" }}
       topologySpreadConstraints:

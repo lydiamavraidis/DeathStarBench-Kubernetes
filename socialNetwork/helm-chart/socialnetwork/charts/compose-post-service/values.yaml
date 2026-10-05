@@ -1,5 +1,5 @@
 name: compose-post-service
-
+includePrometheus: true
 ports:
   - port: 9090
     targetPort: 9090

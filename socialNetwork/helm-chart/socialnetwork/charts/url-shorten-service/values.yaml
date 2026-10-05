@@ -1,5 +1,5 @@
 name: url-shorten-service
-
+includePrometheus: true
 ports:
   - port: 9090
     targetPort: 9090
