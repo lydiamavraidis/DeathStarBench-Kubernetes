@@ -13,15 +13,17 @@ spec:
   - {{ .Values.name }}
   - {{ .Values.name }}.{{ $.Release.Namespace }}
   - {{ .Values.name }}.{{ $.Release.Namespace }}.svc.cluster.local
-  tcp:
-  - match:
-    - {}
-    route:
+  http:
+  - route:
     - destination:
         host: {{ .Values.name }}
         port:
           number: 9090
         subset: "all"
+    timeout: {{ .Values.istio.virtualService.timeout }}
+    retries:
+      attempts: {{ .Values.istio.virtualService.retries.attempts }}
+      perTryTimeout: {{ .Values.istio.virtualService.retries.perTryTimeout }}
 ---
 apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
@@ -36,6 +38,10 @@ spec:
     connectionPool:
       tcp:
         maxConnections: 100
+      http:
+        http1MaxPendingRequests: 100
+        maxRequestsPerConnection: 2
+        h2UpgradePolicy: UPGRADE
     loadBalancer:
       simple: {{ .Values.istio.virtualService.loadBalancing }}
     outlierDetection:

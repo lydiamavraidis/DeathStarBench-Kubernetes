@@ -57,6 +57,14 @@ global:
     enabled: true
     namespace: prometheus
 
+kube-prometheus-stack:
+  prometheus:
+    prometheusSpec:
+      # Discover all ServiceMonitors in the release namespace (including Istio ones we just created)
+      serviceMonitorSelectorNilUsesHelmValues: false
+      # Discover all PodMonitors
+      podMonitorSelectorNilUsesHelmValues: false
+
 mongodb-sharded:
   fullnameOverride: mongodb-sharded
   auth:

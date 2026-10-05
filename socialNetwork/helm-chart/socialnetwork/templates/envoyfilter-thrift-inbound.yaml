@@ -1,0 +1,42 @@
+{{- if .Values.global.prometheus.enabled }}
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: thrift-inbound
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: social-network
+spec:
+  workloadSelector:
+    labels:
+      app: user-service
+  configPatches:
+  - applyTo: NETWORK_FILTER
+    match:
+      context: SIDECAR_INBOUND
+      listener:
+        portNumber: 9090
+        filterChain:
+          filter:
+            name: envoy.filters.network.tcp_proxy
+    patch:
+      operation: REPLACE
+      value:
+        name: envoy.filters.network.thrift_proxy
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.thrift_proxy.v3.ThriftProxy
+          stat_prefix: thrift
+          transport: AUTO_TRANSPORT
+          protocol: AUTO_PROTOCOL
+          route_config:
+            name: inbound
+            routes:
+            - match:
+                method_name: ""
+              route:
+                cluster: "inbound|9090||"
+          thrift_filters:
+          - name: envoy.filters.thrift.router
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.network.thrift_proxy.router.v3.Router
+{{- end }}

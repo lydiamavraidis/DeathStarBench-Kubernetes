@@ -1,0 +1,28 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: envoy-sidecars
+  namespace: socialnetwork
+  labels:
+    release: social-network
+spec:
+  kubernetes_sd_configs:
+  - role: pod
+    namespaces:
+      names:
+      - socialnetwork
+  relabel_configs:
+  - source_labels: [__meta_kubernetes_pod_label_security_istio_io_tlsMode]
+    action: keep
+    regex: istio
+  - source_labels: [__meta_kubernetes_pod_container_port_number]
+    action: keep
+    regex: "15000"
+  - source_labels: [__meta_kubernetes_pod_name]
+    target_label: pod
+  - source_labels: [__meta_kubernetes_namespace]
+    target_label: namespace
+  - source_labels: [__meta_kubernetes_pod_label_app]
+    target_label: app
+  metrics_path: /stats/prometheus
+  scrape_interval: 1s

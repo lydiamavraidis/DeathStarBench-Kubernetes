@@ -1,0 +1,28 @@
+{{- if .Values.global.prometheus.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: thrift-envoy-stats
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: thrift-metrics
+    release: {{ .Release.Name }}
+spec:
+  # Target all pods in the socialnetwork namespace
+  selector:
+    matchLabels: {}
+  namespaceSelector:
+    matchNames:
+    - {{ .Release.Namespace }}
+  podMetricsEndpoints:
+  # Scrape Envoy's metrics endpoint (available on port 15000 in sidecar)
+  - port: "15000"
+    interval: 15s
+    path: /stats/prometheus
+    scheme: http
+    # Only collect Thrift-related metrics
+    relabelings:
+    - sourceLabels: [__metrics_path__]
+      replacement: /stats/prometheus?filter=thrift
+      targetLabel: __metrics_path__
+{{- end }}

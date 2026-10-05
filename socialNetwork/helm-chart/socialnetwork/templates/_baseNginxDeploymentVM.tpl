@@ -10,7 +10,7 @@ metadata:
     vm: {{ $vmId }}
   name: {{ $.Values.name }}-{{ $vmId }}
   namespace: {{ $.Release.Namespace }}
-spec: 
+spec:
   replicas: {{ $vmConfig.replicas | default $.Values.global.replicas }}
   selector:
     matchLabels:
@@ -23,8 +23,13 @@ spec:
         app: {{ $.Values.name }}
         vm: {{ $vmId }}
         version: v1
+        has-prometheus-sidecar: "true"
       annotations:
         sidecar.istio.io/inject: "true"
+        proxy.istio.io/config: |
+          proxyStatsMatcher:
+            inclusionRegexps:
+              - ".*"
     spec:
       affinity:
         nodeAffinity:
@@ -44,7 +49,7 @@ spec:
         {{- range $cport := .ports }}
         - containerPort: {{ $cport.containerPort }}
           name: {{ $cport.name | default "http" }}
-        {{- end }} 
+        {{- end }}
         {{- if .env }}
         env:
         {{- range $e := .env}}
@@ -53,7 +58,7 @@ spec:
         {{ end -}}
         {{ end -}}
         {{- if .command}}
-        command: 
+        command:
         - {{ .command }}
         {{- end -}}
         {{- if .args}}
@@ -62,19 +67,19 @@ spec:
         - {{ $arg }}
         {{- end -}}
         {{- end }}
-        {{- if .resources }}  
+        {{- if .resources }}
         resources:
           {{ toYaml .resources | nindent 10 | trim }}
-        {{- else if hasKey $.Values.global "resources" }}           
+        {{- else if hasKey $.Values.global "resources" }}
         resources:
           {{ toYaml $.Values.global.resources | nindent 10 | trim }}
-        {{- end }}  
-        {{- if $.Values.configMaps }}        
-        volumeMounts: 
+        {{- end }}
+        {{- if $.Values.configMaps }}
+        volumeMounts:
         {{- range $configMap := $.Values.configMaps }}
         - name: {{ $.Values.name }}-config
           mountPath: {{ $configMap.mountPath }}
-          subPath: {{ $configMap.name }}        
+          subPath: {{ $configMap.name }}
         {{- end }}
         {{- range .volumeMounts }}
         - name: {{ .name }}
@@ -83,13 +88,37 @@ spec:
         {{- end }}
       {{- end }}
 
+      - name: prometheus-sidecar
+        image: prom/prometheus:v2.53.1
+        args:
+          - '--config.file=/etc/prometheus/sidecar-prometheus.yml'
+          - '--storage.tsdb.path=/prometheus'
+          - '--storage.tsdb.retention.time=1h'
+          - '--web.listen-address=0.0.0.0:9091'
+        ports:
+        - containerPort: 9091
+          name: metrics
+        volumeMounts:
+        - name: {{ $.Values.name }}-config
+          mountPath: /etc/prometheus/sidecar-prometheus.yml
+          subPath: sidecar-prometheus.yml
+        - name: prometheus-storage
+          mountPath: /prometheus
+        resources:
+          requests:
+            cpu: 3m
+            memory: 12Mi
+          limits:
+            cpu: 3m
+            memory: 12Mi
+
       initContainers:
       {{- with $.Values.initContainer }}
       - name: "{{ .name }}"
         image: {{ .dockerRegistry | default $.Values.global.dockerRegistry }}/{{ .image }}:{{ .imageVersion | default $.Values.global.defaultImageVersion }}
         imagePullPolicy: {{ .imagePullPolicy | default $.Values.global.imagePullPolicy }}
         {{- if .command}}
-        command: 
+        command:
         - {{ .command }}
         {{- end -}}
         {{- if .resources }}
@@ -112,8 +141,8 @@ spec:
         - {{ $arg }}
         {{- end -}}
         {{- end }}
-        {{- if .volumeMounts }}        
-        volumeMounts: 
+        {{- if .volumeMounts }}
+        volumeMounts:
         {{- range .volumeMounts }}
         - name: {{ .name }}
           mountPath: {{ .mountPath }}
@@ -126,12 +155,14 @@ spec:
       - name: {{ $.Values.name }}-config
         configMap:
           name: {{ $.Values.name }}-{{ $vmId }}
+      - name: prometheus-storage
+        emptyDir: {}
       {{- range $.Values.volumes }}
       - name: {{ .name }}
         emptyDir: {}
       {{- end }}
       {{- end }}
-      
+
       {{- if hasKey $.Values "topologySpreadConstraints" }}
       topologySpreadConstraints:
         {{ tpl $.Values.topologySpreadConstraints . | nindent 6 | trim }}

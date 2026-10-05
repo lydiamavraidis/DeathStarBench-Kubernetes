@@ -1,0 +1,93 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-envoy-config
+  namespace: socialnetwork
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+    scrape_configs:
+    - job_name: 'prometheus-sidecars'
+      kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+          - socialnetwork
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_has_prometheus_sidecar]
+        action: keep
+        regex: "true"
+      - source_labels: [__meta_kubernetes_pod_ip]
+        regex: (.+)
+        replacement: ${1}:9091
+        target_label: __address__
+      - source_labels: [__meta_kubernetes_pod_name]
+        target_label: pod
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        target_label: app
+      - source_labels: [__meta_kubernetes_namespace]
+        target_label: namespace
+      metrics_path: /metrics
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus-envoy
+  namespace: socialnetwork
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus-envoy
+  template:
+    metadata:
+      labels:
+        app: prometheus-envoy
+    spec:
+      hostNetwork: true
+      containers:
+      - name: prometheus
+        image: prom/prometheus:v2.53.1
+        args:
+          - '--config.file=/etc/prometheus/prometheus.yml'
+          - '--storage.tsdb.path=/prometheus'
+          - '--storage.tsdb.retention.time=7d'
+        ports:
+        - containerPort: 9090
+          name: http
+        volumeMounts:
+        - name: config
+          mountPath: /etc/prometheus
+        - name: storage
+          mountPath: /prometheus
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+      volumes:
+      - name: config
+        configMap:
+          name: prometheus-envoy-config
+      - name: storage
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-envoy
+  namespace: socialnetwork
+  labels:
+    app: prometheus-envoy
+spec:
+  ports:
+  - port: 9090
+    targetPort: 9090
+    name: http
+  selector:
+    app: prometheus-envoy
+  type: ClusterIP

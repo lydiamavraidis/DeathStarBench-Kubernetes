@@ -17,6 +17,11 @@ spec:
     protocol: {{ .protocol }}
     {{- end}}
     targetPort: {{ .targetPort }}
+    {{- if eq (.port | toString) "9090" }}
+    appProtocol: thrift
+    {{- else }}
+    appProtocol: grpc
+    {{- end }}
   {{- end}}
   selector:
     service: {{ .Values.name }}

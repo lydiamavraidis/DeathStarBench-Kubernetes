@@ -23,8 +23,13 @@ spec:
         app: {{ $.Values.name }}
         vm: {{ $vmId }}
         version: v1
+        has-prometheus-sidecar: "true"
       annotations:
         sidecar.istio.io/inject: "true"
+        proxy.istio.io/config: |
+          proxyStatsMatcher:
+            inclusionRegexps:
+              - ".*"
     spec:
       affinity:
         nodeAffinity:
@@ -44,23 +49,23 @@ spec:
         {{- range $cport := .ports }}
         - containerPort: {{ $cport.containerPort }}
           name: {{ $cport.name | default "http" }}
-        {{ end }} 
+        {{- end }}
         {{- if .env }}
         env:
         {{- range $e := .env}}
         - name: {{ $e.name }}
           value: "{{ (tpl ($e.value | toString) $) }}"
-        {{ end -}}
-        {{ end -}}
+        {{- end }}
+        {{- end }}
         {{- if .command}}
         command: 
         - {{ .command }}
-        {{- end -}}
+        {{- end }}
         {{- if .args}}
         args:
         {{- range $arg := .args}}
         - {{ $arg }}
-        {{- end -}}
+        {{- end }}
         {{- end }}
         {{- if hasKey . "resources" }}  
         resources:
@@ -68,7 +73,7 @@ spec:
         {{- else if hasKey $.Values.global "resources" }}           
         resources:
           {{ toYaml $.Values.global.resources | nindent 10 | trim }}
-        {{- end }}  
+        {{- end }}
         {{- if $.Values.configMaps }}        
         volumeMounts: 
         {{- range $configMap := $.Values.configMaps }}
@@ -77,12 +82,37 @@ spec:
           subPath: {{ $configMap.name }}
         {{- end }}
         {{- end }}
-      {{- end -}}
+      {{- end }}
+      - name: prometheus-sidecar
+        image: prom/prometheus:v2.53.1
+        args:
+          - '--config.file=/etc/prometheus/sidecar-prometheus.yml'
+          - '--storage.tsdb.path=/prometheus'
+          - '--storage.tsdb.retention.time=1h'
+          - '--web.listen-address=0.0.0.0:9091'
+        ports:
+        - containerPort: 9091
+          name: metrics
+        volumeMounts:
+        - name: {{ $.Values.name }}-config
+          mountPath: /etc/prometheus/sidecar-prometheus.yml
+          subPath: sidecar-prometheus.yml
+        - name: prometheus-storage
+          mountPath: /prometheus
+        resources:
+          requests:
+            cpu: 3m
+            memory: 12Mi
+          limits:
+            cpu: 3m
+            memory: 12Mi
       {{- if $.Values.configMaps }}
       volumes:
       - name: {{ $.Values.name }}-config
         configMap:
           name: {{ $.Values.name }}-{{ $vmId }}
+      - name: prometheus-storage
+        emptyDir: {}
       {{- end }}
       {{- if hasKey $.Values "topologySpreadConstraints" }}
       topologySpreadConstraints:
